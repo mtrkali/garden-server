@@ -25,8 +25,20 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
-    const usersCollection = client.db("gardenDB").collection("users");
+    const tipsCollection = client.db("gardenDB").collection("tips");
 
+    // tips post -1
+    app.post('/tips', async(req, res)=>{
+      const newTip = req.body;
+      const result = await tipsCollection.insertOne(newTip);
+      res.send(result);
+    })
+
+    //tips get -2
+    app.get('/tips', async(req, res) => {
+      const result = await tipsCollection.find().toArray();
+      res.send(result);
+    })
 
     app.get("/", (req, res) => {
       res.send("Our garden server will be comming soon");
