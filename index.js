@@ -38,7 +38,12 @@ async function run() {
     //tips get -2
     app.get("/tips", async (req, res) => {
       const availability = req.query.availability;
-      const query = { availability: "public" };
+      let query = {};
+      if(availability === 'public'){
+        query = { availability: "public" };
+      }else if (availability === "all"){
+        query = {}
+      }
       const result = await tipsCollection.find(query).toArray();
       res.send(result);
     });
@@ -50,6 +55,7 @@ async function run() {
       const result = await tipsCollection.findOne(query);
       res.send(result);
     });
+
 
     //gardeners get -1
     app.get("/gardenaers", async (req, res) => {
