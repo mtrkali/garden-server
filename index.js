@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    
+    await client.connect();
     // Send a ping to confirm a successful connection
     const tipsCollection = client.db("gardenDB").collection("tips");
     const gardenersCollection = client.db("gardenDB").collection("gardenaers");
@@ -55,6 +55,39 @@ async function run() {
       const result = await tipsCollection.findOne(query);
       res.send(result);
     });
+
+    //tip update  single tip --4
+    app.put('/tips/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updatedTip = req.body;
+      const updatedDoc = {
+        $set:updatedTip,
+      };
+      const result = await tipsCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    //update a single tip ---5
+    app.patch('/tips', async(req, res) =>{
+      const {email, like} = req.body;
+      const filter = {email: email};
+      const updateDoc = {
+        $set:{
+          like: like,
+        }
+      };
+      const result = await tipsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+  });
+
+  //delete tips ----6
+  app.delete('/tips/:id', async(req, res) =>{
+    const id = req.params.id;
+    const filter = {_id: new ObjectId(id)};
+    const result = await tipsCollection.deleteOne(filter);
+    res.send(result);
+  })
 
 
     //gardeners get -1
