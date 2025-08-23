@@ -70,9 +70,10 @@ async function run() {
     })
 
     //update a single tip ---5
-    app.patch('/tips', async(req, res) =>{
-      const {email, like} = req.body;
-      const filter = {email: email};
+    app.patch('/tips/:id', async(req, res) =>{
+      const id = req.params.id;
+      const {like} = req.body;
+      const filter = {_id: new ObjectId(id)};
       const updateDoc = {
         $set:{
           like: like,
