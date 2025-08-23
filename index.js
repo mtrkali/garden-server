@@ -37,6 +37,7 @@ async function run() {
 
     //tips get -2
     app.get("/tips", async (req, res) => {
+      const limit = parseInt(req.query.limit) || 0;
       const availability = req.query.availability;
       let query = {};
       if(availability === 'public'){
@@ -87,15 +88,25 @@ async function run() {
     const filter = {_id: new ObjectId(id)};
     const result = await tipsCollection.deleteOne(filter);
     res.send(result);
-  })
+  });
 
 
-    //gardeners get -1
-    app.get("/gardenaers", async (req, res) => {
-      const result = await gardenersCollection.find().toArray();
-      res.send(result);
-    });
-
+    //get active garderndes --2
+    app.get('/gardenaers', async(req, res) =>{
+      const status = req.query.status;
+      let query = {};
+      if(status === 'active'){
+        query = {status: 'active'}
+        const result = await gardenersCollection.find(query).limit(6).toArray()
+        res.send(result)
+      }else if(status === 'all'){
+        query = {};
+        const result = await gardenersCollection.find(query).toArray()
+        res.send(result)
+      }
+      
+    })
+      
     //users post -1
     app.post("/users", async (req, res) => {
       const newUser = req.body;
@@ -107,7 +118,7 @@ async function run() {
     app.get('/users', async(req, res) =>{
       const result = await usersCollection.find().toArray();
       res.send(result);
-    })
+    });
 
     
   } finally {
