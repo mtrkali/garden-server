@@ -6,7 +6,11 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 //middle waire --
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://garden-client-f1349.web.app", "http://localhost:5173"],
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rwjljqx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -21,7 +25,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    
     // Send a ping to confirm a successful connection
     const tipsCollection = client.db("gardenDB").collection("tips");
     const gardenersCollection = client.db("gardenDB").collection("gardenaers");
@@ -34,17 +37,22 @@ async function run() {
       res.send(result);
     });
 
-    //tips get -2
     app.get("/tips", async (req, res) => {
       const limit = parseInt(req.query.limit) || 0;
       const availability = req.query.availability;
+      const email = req.query.email;
+
       let query = {};
-      if(availability === 'public'){
-        query = { availability: "public" };
-      }else if (availability === "all"){
-        query = {}
+
+      if (email) {
+        query.email = email;
+      } else if (availability === "public") {
+        query.availability = "public";
+      } else if (availability === "all") {
+        query = {};
       }
-      const result = await tipsCollection.find(query).toArray();
+
+      const result = await tipsCollection.find(query).limit(limit).toArray();
       res.send(result);
     });
 
@@ -57,70 +65,66 @@ async function run() {
     });
 
     //tip update  single tip --4
-    app.put('/tips/:id', async(req, res)=>{
+    app.put("/tips/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedTip = req.body;
       const updatedDoc = {
-        $set:updatedTip,
+        $set: updatedTip,
       };
       const result = await tipsCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     //update a single tip ---5
-    app.patch('/tips/:id', async(req, res) =>{
+    app.patch("/tips/:id", async (req, res) => {
       const id = req.params.id;
-      const {like} = req.body;
-      const filter = {_id: new ObjectId(id)};
+      const { like } = req.body;
+      const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set:{
+        $set: {
           like: like,
-        }
+        },
       };
       const result = await tipsCollection.updateOne(filter, updateDoc);
       res.send(result);
-  });
+    });
 
-  //delete tips ----6
-  app.delete('/tips/:id', async(req, res) =>{
-    const id = req.params.id;
-    const filter = {_id: new ObjectId(id)};
-    const result = await tipsCollection.deleteOne(filter);
-    res.send(result);
-  });
-
+    //delete tips ----6
+    app.delete("/tips/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await tipsCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     //get active garderndes --2
-    app.get('/gardenaers', async(req, res) =>{
+    app.get("/gardenaers", async (req, res) => {
       const status = req.query.status;
       let query = {};
-      if(status === 'active'){
-        query = {status: 'active'}
-        const result = await gardenersCollection.find(query).limit(6).toArray()
-        res.send(result)
-      }else if(status === 'all'){
+      if (status === "active") {
+        query = { status: "active" };
+        const result = await gardenersCollection.find(query).limit(6).toArray();
+        res.send(result);
+      } else if (status === "all") {
         query = {};
-        const result = await gardenersCollection.find(query).toArray()
-        res.send(result)
+        const result = await gardenersCollection.find(query).toArray();
+        res.send(result);
       }
-      
-    })
-      
+    });
+
     //users post -1
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
     });
-    
+
     //user get -2
-    app.get('/users', async(req, res) =>{
+    app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
-
-    
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
